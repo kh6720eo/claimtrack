@@ -1,51 +1,62 @@
 const claimModel = require('../models/claimModel');
 
-function getAllClaims(req, res) {
-  res.status(200).json(claimModel.getAll());
+async function getAllClaims(req, res) {
+  const claims = await claimModel.getAll();
+  res.status(200).json(claims);
 }
 
-function getClaimById(req, res) {
-  const id = Number(req.params.id);
-  const claim = claimModel.getById(id);
-
-  if (!claim) {
-    return res.status(404).json({ error: 'Claim not found' });
+async function getClaimById(req, res) {
+  try {
+    const claim = await claimModel.getById(req.params.id);
+    if (!claim) {
+      return res.status(404).json({ error: 'Claim not found' });
+    }
+    res.status(200).json(claim);
+  } catch (err) {
+    res.status(404).json({ error: 'Claim not found' });
   }
-
-  res.status(200).json(claim);
 }
 
-function createClaim(req, res) {
+async function createClaim(req, res) {
   const { description, amount, dateOfLoss } = req.body;
 
   if (!description || !amount) {
     return res.status(400).json({ error: 'description and amount are required' });
   }
 
-  const claim = claimModel.create({ description, amount, dateOfLoss });
-  res.status(201).json(claim);
+  try {
+    const claim = await claimModel.create({ description, amount, dateOfLoss });
+    res.status(201).json(claim);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 }
 
-function updateClaim(req, res) {
-  const id = Number(req.params.id);
-  const updated = claimModel.update(id, req.body);
-
-  if (!updated) {
-    return res.status(404).json({ error: 'Claim not found' });
+async function updateClaim(req, res) {
+  try {
+    const updated = await claimModel.update(req.params.id, req.body);
+    if (!updated) {
+      return res.status(404).json({ error: 'Claim not found' });
+    }
+    res.status(200).json(updated);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).json({ error: 'Claim not found' });
+    }
+    res.status(400).json({ error: err.message });
   }
-
-  res.status(200).json(updated);
 }
 
-function deleteClaim(req, res) {
-  const id = Number(req.params.id);
-  const deleted = claimModel.remove(id);
-
-  if (!deleted) {
-    return res.status(404).json({ error: 'Claim not found' });
+async function deleteClaim(req, res) {
+  try {
+    const deleted = await claimModel.remove(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Claim not found' });
+    }
+    res.status(204).send();
+  } catch (err) {
+    res.status(404).json({ error: 'Claim not found' });
   }
-
-  res.status(204).send();
 }
 
 module.exports = {

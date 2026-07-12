@@ -1,40 +1,23 @@
-let claims = [];
-let nextId = 1;
+const Claim = require('./Claim');
 
 function getAll() {
-  return claims;
+  return Claim.find();
 }
 
 function getById(id) {
-  return claims.find((claim) => claim.id === id);
+  return Claim.findById(id);
 }
 
 function create(data) {
-  const claim = {
-    id: nextId++,
-    description: data.description,
-    amount: data.amount,
-    dateOfLoss: data.dateOfLoss,
-    status: 'submitted',
-  };
-  claims.push(claim);
-  return claim;
+  return Claim.create(data);
 }
 
 function update(id, data) {
-  const claim = getById(id);
-  if (!claim) return null;
-
-  Object.assign(claim, data);
-  return claim;
+  return Claim.findByIdAndUpdate(id, data, { new: true, runValidators: true });
 }
 
 function remove(id) {
-  const index = claims.findIndex((claim) => claim.id === id);
-  if (index === -1) return false;
-
-  claims.splice(index, 1);
-  return true;
+  return Claim.findByIdAndDelete(id);
 }
 
 module.exports = { getAll, getById, create, update, remove };
