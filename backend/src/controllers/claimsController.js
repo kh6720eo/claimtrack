@@ -1,14 +1,15 @@
 const claimModel = require('../models/claimModel');
 
 async function getAllClaims(req, res) {
-  const claims = await claimModel.getAll();
+  const filter = req.user.role === 'adjuster' ? {} : { submittedBy: req.user._id };
+  const claims = await claimModel.getAll(filter);
   res.status(200).json(claims);
 }
 
 async function getClaimById(req, res) {
   try {
     const claim = await claimModel.getById(req.params.id);
-    if (!claim) {
+    if (!claim || (req.user.role !== 'adjuster' && String(claim.submittedBy) !== String(req.user._id))) {
       return res.status(404).json({ error: 'Claim not found' });
     }
     res.status(200).json(claim);
@@ -25,16 +26,28 @@ async function createClaim(req, res) {
   }
 
   try {
-    const claim = await claimModel.create({ description, amount, dateOfLoss });
+    const claim = await claimModel.create({
+      description,
+      amount,
+      dateOfLoss,
+      submittedBy: req.user._id,
+    });
     res.status(201).json(claim);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 }
 
-async function updateClaim(req, res) {
+async function updateClaimStatus(req, res) {
+  const { status } = req.body;
+  const allowed = ['submitted', 'in_review', 'approved', 'denied'];
+
+  if (!status || !allowed.includes(status)) {
+    return res.status(400).json({ error: `status must be one of: ${allowed.join(', ')}` });
+  }
+
   try {
-    const updated = await claimModel.update(req.params.id, req.body);
+    const updated = await claimModel.update(req.params.id, { status });
     if (!updated) {
       return res.status(404).json({ error: 'Claim not found' });
     }
@@ -63,6 +76,6 @@ module.exports = {
   getAllClaims,
   getClaimById,
   createClaim,
-  updateClaim,
+  updateClaimStatus,
   deleteClaim,
 };

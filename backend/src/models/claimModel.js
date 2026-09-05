@@ -1,7 +1,7 @@
 const Claim = require('./Claim');
 
-function getAll() {
-  return Claim.find();
+function getAll(filter = {}) {
+  return Claim.find(filter);
 }
 
 function getById(id) {
@@ -13,7 +13,7 @@ function create(data) {
 }
 
 function update(id, data) {
-  return Claim.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  return Claim.findByIdAndUpdate(id, data, { returnDocument: 'after', runValidators: true });
 }
 
 function remove(id) {

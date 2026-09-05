@@ -17,6 +17,11 @@ const claimSchema = new mongoose.Schema({
     enum: ['submitted', 'in_review', 'approved', 'denied'],
     default: 'submitted',
   },
-});
+  submittedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+}, { timestamps: true });
 
 module.exports = mongoose.model('Claim', claimSchema);
