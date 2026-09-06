@@ -17,6 +17,17 @@ const claimSchema = new mongoose.Schema({
     enum: ['submitted', 'in_review', 'approved', 'denied'],
     default: 'submitted',
   },
+  aiSummary: {
+    type: String,
+  },
+  aiCategory: {
+    type: String,
+    enum: ['auto', 'property', 'liability', 'other'],
+  },
+  aiPriority: {
+    type: String,
+    enum: ['low', 'medium', 'high'],
+  },
   submittedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
