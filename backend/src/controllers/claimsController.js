@@ -1,4 +1,5 @@
 const claimModel = require('../models/claimModel');
+const { triageClaim } = require('../services/triageService');
 
 async function getAllClaims(req, res) {
   const filter = req.user.role === 'adjuster' ? {} : { submittedBy: req.user._id };
@@ -60,6 +61,28 @@ async function updateClaimStatus(req, res) {
   }
 }
 
+async function triageClaimById(req, res) {
+  const claim = await claimModel.getById(req.params.id);
+  if (!claim) {
+    return res.status(404).json({ error: 'Claim not found' });
+  }
+
+  try {
+    const { summary, category, priority } = await triageClaim({
+      description: claim.description,
+      amount: claim.amount,
+    });
+    const updated = await claimModel.update(req.params.id, {
+      aiSummary: summary,
+      aiCategory: category,
+      aiPriority: priority,
+    });
+    res.status(200).json(updated);
+  } catch (err) {
+    res.status(502).json({ error: `Triage failed: ${err.message}` });
+  }
+}
+
 async function deleteClaim(req, res) {
   try {
     const deleted = await claimModel.remove(req.params.id);
@@ -77,5 +100,6 @@ module.exports = {
   getClaimById,
   createClaim,
   updateClaimStatus,
+  triageClaimById,
   deleteClaim,
 };
